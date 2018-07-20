@@ -558,21 +558,29 @@ static int mtk_pcm_I2S0dl1_start(struct snd_pcm_substream *substream)
 
 static void fix_phase(void *buf, size_t len, snd_pcm_format_t format)
 {
-	if(format == SNDRV_PCM_FORMAT_S32_LE) {
-		s32 *p = (s32 *)buf;
-		size_t i;
-		for (i=0; i<len; i+=8) {
-			*p = -*p;
-			p += 2;
-		}
-	}
+	extern volatile int cable_type;
 
-	else if(format == SNDRV_PCM_FORMAT_S16_LE) {
-		s16 *p = (s16 *)buf;
-		size_t i;
-		for (i=0; i<len; i+=4) {
-			*p = -*p;
-			p += 2;
+	/* cable_type indicates which kind of accessory is connected, 0
+	 * means none, so playing on speakers */
+
+	if(cable_type == 0) {
+
+		if(format == SNDRV_PCM_FORMAT_S32_LE) {
+			s32 *p = (s32 *)buf;
+			size_t i;
+			for (i=0; i<len; i+=8) {
+				*p = -*p;
+				p += 2;
+			}
+		}
+
+		else if(format == SNDRV_PCM_FORMAT_S16_LE) {
+			s16 *p = (s16 *)buf;
+			size_t i;
+			for (i=0; i<len; i+=4) {
+				*p = -*p;
+				p += 2;
+			}
 		}
 	}
 }
