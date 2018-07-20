@@ -550,6 +550,34 @@ static int mtk_pcm_I2S0dl1_start(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+
+/*
+ * Flip the phase of one audio channel as a workaround for the wrong polarization
+ * on the Gemini internal speakers
+ */
+
+static void fix_phase(void *buf, size_t len, snd_pcm_format_t format)
+{
+	if(format == SNDRV_PCM_FORMAT_S32_LE) {
+		s32 *p = (s32 *)buf;
+		size_t i;
+		for (i=0; i<len; i+=8) {
+			*p = -*p;
+			p += 2;
+		}
+	}
+
+	else if(format == SNDRV_PCM_FORMAT_S16_LE) {
+		s16 *p = (s16 *)buf;
+		size_t i;
+		for (i=0; i<len; i+=4) {
+			*p = -*p;
+			p += 2;
+		}
+	}
+}
+
+
 static int mtk_pcm_I2S0dl1_trigger(struct snd_pcm_substream *substream, int cmd)
 {
 	/* pr_warn("mtk_pcm_I2S0dl1_trigger cmd = %d\n", cmd); */
@@ -572,7 +600,7 @@ static int mtk_pcm_I2S0dl1_copy(struct snd_pcm_substream *substream,
 	AFE_BLOCK_T  *Afe_Block = NULL;
 	int copy_size = 0, Afe_WriteIdx_tmp;
 	unsigned long flags;
-	/* struct snd_pcm_runtime *runtime = substream->runtime; */
+	struct snd_pcm_runtime *runtime = substream->runtime;
 	char *data_w_ptr = (char *)dst;
 
 	PRINTK_AUD_DL1("mtk_pcm_copy pos = %lu count = %lu\n ", pos, count);
@@ -638,6 +666,7 @@ static int mtk_pcm_I2S0dl1_copy(struct snd_pcm_substream *substream,
 				}
 			}
 
+			fix_phase(Afe_Block->pucVirtBufAddr + Afe_WriteIdx_tmp, copy_size, runtime->format);
 			spin_lock_irqsave(&auddrv_I2S0dl1_lock, flags);
 			Afe_Block->u4DataRemained += copy_size;
 			Afe_Block->u4WriteIdx = Afe_WriteIdx_tmp + copy_size;
@@ -670,6 +699,8 @@ static int mtk_pcm_I2S0dl1_copy(struct snd_pcm_substream *substream,
 					return -1;
 				}
 			}
+
+			fix_phase(Afe_Block->pucVirtBufAddr + Afe_WriteIdx_tmp, size_1, runtime->format);
 			spin_lock_irqsave(&auddrv_I2S0dl1_lock, flags);
 			Afe_Block->u4DataRemained += size_1;
 			Afe_Block->u4WriteIdx = Afe_WriteIdx_tmp + size_1;
@@ -693,6 +724,8 @@ static int mtk_pcm_I2S0dl1_copy(struct snd_pcm_substream *substream,
 					return -1;
 				}
 			}
+
+			fix_phase(Afe_Block->pucVirtBufAddr + Afe_WriteIdx_tmp, size_2, runtime->format);
 			spin_lock_irqsave(&auddrv_I2S0dl1_lock, flags);
 
 			Afe_Block->u4DataRemained += size_2;
