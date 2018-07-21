@@ -13,7 +13,7 @@ I provide boot images which can be installed with the Gemini flash tool at
 https://github.com/zevv/gemini-android-kernel-3.18/releases. These work for me
 but might break your device, use at your own risk.
 
-Done:
+Changes from upstream kernel:
 
 - Fixed out of phase audio output when on playing on speaker. When no accessory
   is attached the phase of the left channel is now inverted before data is sent
@@ -23,11 +23,21 @@ Done:
   releases and makes a good effort to generate the right key codes of a chord
   when releasing the first keys (Thanks Nathan)
 
+- Applied patch for CVE-2017-1000251: stack buffer overflow in the native
+  Bluetooth stack
+
 Whishlist:
 
 - Fix EMC noise on headphones when not playing. It might be possible to power
   down the appropriate analog circuits, or keep the codec powered on. Needs
   more investigation.
+
+- Swap recording audio channels when recording video on the externel camera.
+  This probably should be fixed somewhere in Android userland, but we can do it
+  in the kernel as well.
+
+- Sticky keys: press shift, alt, or ctrl, then the next non-modifier keypress
+  is modified.
 
 Can not fix:
 
