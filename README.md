@@ -1,5 +1,7 @@
 
-Fork of the Gemini Android 3.18 Linux kernel as published by Planet Computers.
+This is a fork of the Gemini Android 3.18 Linux kernel as published by Planet
+Computers. (Which really deserves a big "thank you!", it is really great that
+Planet was able to deliver!)
 
 This fork has some small fixes and workarounds for bugs/issues on the Gemini
 PDA. 
